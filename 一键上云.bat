@@ -25,25 +25,31 @@ set /p REPO=Repo name (default zx-tracker):
 if "%REPO%"=="" set REPO=zx-tracker
 
 echo.
-echo [1/5] git init
+echo [0] set git identity
+git config user.name "%USERNAME%"
+git config user.email "%USERNAME%@users.noreply.github.com"
+
+echo [1] git init
 git init
-echo [2/5] git add .
-git add .
-echo [3/5] git commit
-git commit -m "init zx tracker"
-echo [4/5] set remote
+echo [2] git add
+git add -A
+echo [3] git commit
+git diff --cached --quiet 2>nul && echo (no changes to commit) || git commit -m "init zx tracker"
+echo [4] set remote
 git branch -M main
 git remote remove origin >nul 2>nul
 git remote add origin https://github.com/%USERNAME%/%REPO%.git
-echo [5/5] git push (enter username, then paste Token as password)
-git push -u origin main
+echo [5] git push
+git push -u origin main > push_log.txt 2>&1
+type push_log.txt
 
 echo.
 echo ============================================
+findstr /i "error" push_log.txt >nul
 if %errorlevel%==0 (
-  echo SUCCESS. Go to repo Settings - Pages to enable website.
+  echo FAILED. Open push_log.txt in this folder and send it to me.
 ) else (
-  echo FAILED. Send me the error message or screenshot.
+  echo SUCCESS. Go to repo Settings - Pages to enable website.
 )
 echo ============================================
 pause
