@@ -232,6 +232,7 @@ function applyFilter(list){const f=getFilters();return list.filter(r=>{if(f.fw&&
 /* ---------- 渲染 ---------- */
 function fillFilters(){
   const c=document.getElementById('fCountry'),o=document.getElementById('fOwner'),s=document.getElementById('fStatus'),p=document.getElementById('fPriority');
+  [c,o,s,p].forEach(sel=>{while(sel.options.length>1)sel.remove(1);});
   COUNTRY_OPT.forEach(x=>c.add(new Option(x,x)));
   STATUS_OPT.forEach(x=>s.add(new Option(x,x)));
   PRI_OPT.forEach(x=>p.add(new Option(x,x)));
