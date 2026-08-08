@@ -32,7 +32,8 @@
   .toolbar{display:flex;gap:10px;padding:12px 18px;flex-wrap:wrap;align-items:center;background:var(--bg);}
   .toolbar select,.toolbar input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit;font-size:13px;}
   .wrap{padding:0 18px 40px;}
-  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);table-layout:auto;}
+  .table-scroll{overflow-y:auto;max-height:calc(100vh - 230px);border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  table{width:100%;border-collapse:collapse;background:var(--card);table-layout:auto;}
   th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;font-size:13px;line-height:1.4;}
   th{background:#f8fafc;color:var(--muted);font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:2;}
   tr:hover td{background:#f9fafb;}
@@ -267,7 +268,7 @@ function renderTable(view,list){
       <td>${esc(r.country)}</td><td><span class="badge ${priColor(r.priority)}">${esc(r.priority)}</span></td>
       <td>${esc(r.status)}</td><td>${esc(r.due)}</td><td><span class="badge ${fs.c==='row-overdue'?'b-red':fs.c==='row-due'?'b-yellow':'b-green'}">${fs.t}</span></td>
       <td>${esc(r.progress)}</td></tr>`;});
-  h+='</tbody></table>';view.innerHTML=h;
+  h+='</tbody></table>';view.innerHTML='<div class="table-scroll">'+h+'</div>';
 }
 function renderBoard(view,list,key,cols,label){
   if(!list.length){view.innerHTML='<div class="empty">暂无数据。</div>';return;}
