@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专项工作总表</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#ffffff; --ink:#1f2a37; --muted:#6b7280;
+    --line:#e5e7eb; --primary:#2563eb; --primary-d:#1d4ed8;
+    --red:#dc2626; --yellow:#d97706; --green:#059669; --blue:#2563eb;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+  header h1{font-size:18px;margin:0;font-weight:700;}
+  .grow{flex:1;}
+  .status{font-size:12px;padding:3px 9px;border-radius:20px;background:#eef2ff;color:var(--primary);border:1px solid #dbeafe;}
+  .status.off{background:#fef2f2;color:var(--red);border-color:#fecaca;}
+  .status.saving{background:#fffbeb;color:var(--yellow);border-color:#fde68a;}
+  .status.ok{background:#ecfdf5;color:var(--green);border-color:#a7f3d0;}
+  button{font-family:inherit;font-size:13px;border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:7px 13px;border-radius:8px;cursor:pointer;transition:.15s;}
+  button:hover{border-color:#cbd5e1;}
+  button.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+  button.primary:hover{background:var(--primary-d);}
+  button.ghost{background:#fff;}
+  .tabs{display:flex;gap:6px;padding:10px 18px 0;flex-wrap:wrap;background:var(--card);border-bottom:1px solid var(--line);}
+  .tab{padding:9px 15px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;cursor:pointer;color:var(--muted);font-weight:600;}
+  .tab.active{color:var(--primary);background:var(--bg);border-color:var(--line);}
+  .toolbar{display:flex;gap:10px;padding:12px 18px;flex-wrap:wrap;align-items:center;background:var(--bg);}
+  .toolbar select,.toolbar input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit;font-size:13px;}
+  .wrap{padding:0 18px 40px;}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px;}
+  th{background:#f8fafc;color:var(--muted);font-weight:600;white-space:nowrap;position:sticky;top:0;}
+  tr:hover td{background:#f9fafb;}
+  td .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;white-space:nowrap;}
+  .row-overdue{background:#fef2f2 !important;}
+  .row-due{background:#fffbeb !important;}
+  .boards{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
+  .board-col{min-width:240px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;}
+  .board-col h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;align-items:center;}
+  .board-col h3 span.count{background:#eef2ff;color:var(--primary);border-radius:20px;padding:1px 9px;font-size:12px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .card:hover{border-color:#cbd5e1;}
+  .card .t{font-weight:600;margin-bottom:5px;line-height:1.35;}
+  .card .m{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .pri{font-weight:700;}
+  .summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;min-width:120px;}
+  .stat .n{font-size:24px;font-weight:800;}
+  .stat .l{color:var(--muted);font-size:12px;margin-top:2px;}
+  .empty{padding:40px;text-align:center;color:var(--muted);}
+  /* modal */
+  .mask{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:30px 14px;overflow:auto;}
+  .mask.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:640px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal h2{margin:0 0 14px;font-size:17px;}
+  .fld{margin-bottom:11px;}
+  .fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;}
+  .fld input,.fld select,.fld textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;}
+  .fld textarea{resize:vertical;min-height:54px;}
+  .fld .req{color:var(--red);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
+  .help{font-size:13px;line-height:1.7;color:var(--ink);}
+  .help code{background:#f1f5f9;padding:2px 6px;border-radius:5px;font-size:12px;}
+  .help ol{padding-left:20px;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600;}
+  .b-red{background:#fee2e2;color:var(--red);}
+  .b-yellow{background:#fef3c7;color:var(--yellow);}
+  .b-green{background:#d1fae5;color:var(--green);}
+  .b-blue{background:#dbeafe;color:var(--blue);}
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 专项工作总表</h1>
+  <span id="connStatus" class="status off">未连接 GitHub</span>
+  <span class="grow"></span>
+  <button class="ghost" onclick="openHelp()">使用说明</button>
+  <button class="ghost" onclick="openSettings()">⚙ 设置</button>
+  <button class="ghost" onclick="refreshData()">⟳ 刷新</button>
+  <button class="primary" onclick="openForm()">＋ 新建专项</button>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-view="table" onclick="switchView('table')">总览</div>
+  <div class="tab" data-view="boardStatus" onclick="switchView('boardStatus')">看板·状态</div>
+  <div class="tab" data-view="boardOwner" onclick="switchView('boardOwner')">看板·负责人</div>
+  <div class="tab" data-view="week" onclick="switchView('week')">本周跟进</div>
+</div>
+
+<div class="toolbar">
+  <input id="fSearch" placeholder="搜索事项/负责人…" oninput="render()" style="min-width:180px;">
+  <select id="fCountry" onchange="render()"><option value="">全部国家</option></select>
+  <select id="fOwner" onchange="render()"><option value="">全部负责人</option></select>
+  <select id="fStatus" onchange="render()"><option value="">全部状态</option></select>
+  <select id="fPriority" onchange="render()"><option value="">全部优先级</option></select>
+  <button class="ghost" onclick="clearFilters()">清除筛选</button>
+  <span class="grow"></span>
+  <button class="ghost" onclick="exportWeek()">⬇ 导出本周清单</button>
+</div>
+
+<div class="wrap" id="view"></div>
+
+<!-- 表单 / 编辑 弹窗 -->
+<div class="mask" id="formMask" onclick="if(event.target===this)closeForm()">
+  <div class="modal">
+    <h2 id="formTitle">新建专项</h2>
+    <div id="formBody"></div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeForm()">取消</button>
+      <button class="primary" onclick="submitForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置 弹窗 -->
+<div class="mask" id="setMask" onclick="if(event.target===this)closeSet()">
+  <div class="modal">
+    <h2>⚙ GitHub 同步设置</h2>
+    <div class="fld"><label>访问令牌 Token <span class="req">*</span></label><input id="setToken" type="password" placeholder="ghp_... 或 github_pat_..."></div>
+    <div class="fld"><label>仓库 <span class="req">*</span>（格式：用户名/仓库名）</label><input id="setRepo" placeholder="zhonglian/hr-zx"></div>
+    <div class="fld"><label>数据文件路径</label><input id="setPath" value="data.json"></div>
+    <div class="fld"><label>分支</label><input id="setBranch" value="main"></div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="testConn()">测试连接</button>
+      <button class="ghost" onclick="closeSet()">取消</button>
+      <button class="primary" onclick="saveSettings()">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 说明 弹窗 -->
+<div class="mask" id="helpMask" onclick="if(event.target===this)closeHelp()">
+  <div class="modal">
+    <h2>使用说明</h2>
+    <div class="help">
+      <p><b>这是什么：</b>一个单文件专项工作管理工具。数据存在 GitHub 仓库的 <code>data.json</code> 里，电脑和手机开同一个网页，录入都写回仓库，两边实时一致；你电脑文件夹里用「同步脚本」保持一份镜像。</p>
+      <p><b>第一次配置（一次性）：</b></p>
+      <ol>
+        <li>点右上角 <code>⚙ 设置</code>，粘贴 GitHub 令牌、填仓库名（<code>用户名/仓库名</code>），保存。</li>
+        <li>没配之前，数据只存在浏览器本地（<code>localStorage</code>），不会同步——配了才上云。</li>
+      </ol>
+      <p><b>日常用法：</b></p>
+      <ol>
+        <li><b>新建：</b>点「＋ 新建专项」，填事项/类型/负责人/目标日/优先级/国家，提交即存。</li>
+        <li><b>修改/删除：</b>总览里点任意一行打开编辑；底部「删除本条」。</li>
+        <li><b>跟进：</b>「本周跟进」自动列出未闭环且临期/逾期/待决策的项；行变<span class="badge b-red">红</span>=已逾期，<span class="badge b-yellow">黄</span>=3天内到期。</li>
+        <li><b>导出：</b>点「导出本周清单」下载 txt，开会用。</li>
+        <li><b>手机录：</b>打开云端网址（GitHub Pages），同样能建/改，写回仓库。</li>
+      </ol>
+      <p><b>本地镜像：</b>双击 <code>同步脚本.bat</code> 把云端最新拉到本文件夹（需文件夹是仓库克隆）。</p>
+      <p style="color:var(--muted)">注：纯静态无主动推送提醒；令牌仅存本机浏览器。详见「初始化与上云命令.txt」。</p>
+    </div>
+    <div class="modal-actions"><button class="primary" onclick="closeHelp()">知道了</button></div>
+  </div>
+</div>
+
+<script>
+const FIELDS=[
+ {k:'title',label:'事项名称',type:'text',required:true},
+ {k:'type',label:'类型',type:'select',options:['协调资源','提供支持','督促执行','落地拍板']},
+ {k:'raised',label:'提出时间',type:'date'},
+ {k:'owner',label:'负责人',type:'text'},
+ {k:'supporter',label:'协办人',type:'text'},
+ {k:'country',label:'国家/区域',type:'select',options:['阿联酋','沙特阿拉伯','南非','埃及','尼日利亚','肯尼亚','摩洛哥','阿尔及利亚','土耳其','伊拉克','其他']},
+ {k:'priority',label:'优先级',type:'select',options:['🔴特急','🟡紧急','🔵常规']},
+ {k:'status',label:'状态',type:'select',options:['待启动','进行中','待决策','已闭环']},
+ {k:'due',label:'目标完成日',type:'date'},
+ {k:'done',label:'实际完成日',type:'date'},
+ {k:'progress',label:'最新进展',type:'textarea'},
+ {k:'risk',label:'卡点/风险',type:'textarea'},
+ {k:'decision',label:'决策结论',type:'textarea'},
+ {k:'file',label:'关联文件',type:'text'},
+];
+const STATUS_OPT=['待启动','进行中','待决策','已闭环'];
+const PRI_OPT=['🔴特急','🟡紧急','🔵常规'];
+const COUNTRY_OPT=['阿联酋','沙特阿拉伯','南非','埃及','尼日利亚','肯尼亚','摩洛哥','阿尔及利亚','土耳其','伊拉克','其他'];
+
+let records=[]; let settings={}; let sha=null; let curView='table'; let editId=null;
+
+/* ---------- 存储 ---------- */
+function loadSettings(){try{settings=JSON.parse(localStorage.getItem('zx_settings')||'{}');}catch(e){settings={};}}
+function saveSettingsLS(){localStorage.setItem('zx_settings',JSON.stringify(settings));}
+function isCloud(){return !!(settings.token&&settings.repo&&settings.path);}
+function setStatus(txt,cls){const e=document.getElementById('connStatus');e.textContent=txt;e.className='status '+(cls||'');}
+
+async function ghLoad(){
+  const url=`https://api.github.com/repos/${settings.repo}/contents/${encodeURIComponent(settings.path)}?ref=${settings.branch||'main'}`;
+  const r=await fetch(url,{headers:{Authorization:`Bearer ${settings.token}`,Accept:'application/vnd.github+json'}});
+  if(r.status===404)return []; if(!r.ok)throw new Error('加载失败 HTTP '+r.status);
+  const j=await r.json(); sha=j.sha; return JSON.parse(decodeURIComponent(escape(atob(j.content))));
+}
+async function ghSave(data){
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
+  const body={message:'更新专项工作数据 '+new Date().toLocaleString('zh-CN'),content,branch:settings.branch||'main'};
+  if(sha)body.sha=sha;
+  const url=`https://api.github.com/repos/${settings.repo}/contents/${encodeURIComponent(settings.path)}`;
+  const r=await fetch(url,{method:'PUT',headers:{Authorization:`Bearer ${settings.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error('保存失败 HTTP '+r.status);
+  const j=await r.json(); sha=j.content.sha;
+}
+async function loadData(){
+  if(isCloud()){try{records=await ghLoad();setStatus('已连接 GitHub','ok');}catch(e){records=JSON.parse(localStorage.getItem('zx_local')||'[]');setStatus('GitHub错误·本地模式','off');console.error(e);}}
+  else{records=JSON.parse(localStorage.getItem('zx_local')||'[]');setStatus('未连接·本地模式','off');}
+}
+async function persist(){
+  if(isCloud()){setStatus('保存中…','saving');try{await ghSave(records);setStatus('已保存','ok');}catch(e){setStatus('保存失败','off');alert('保存到 GitHub 失败：'+e.message);}}
+  else{localStorage.setItem('zx_local',JSON.stringify(records));setStatus('已存本地','ok');}
+}
+
+/* ---------- 计算 ---------- */
+function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function followStatus(r){
+  if(r.status==='已闭环')return {t:'✅已闭环',c:''};
+  if(!r.due)return {t:'⚪未定节点',c:''};
+  const due=new Date(r.due);due.setHours(0,0,0,0);const t=today();
+  if(due<t)return {t:'🔴已逾期',c:'row-overdue'};
+  if((due-t)/86400000<=3)return {t:'🟡临期',c:'row-due'};
+  return {t:'🟢正常',c:''};
+}
+function nextId(){let max=0;records.forEach(r=>{const m=/ZX-\d{4}-(\d+)/.exec(r.id||'');if(m)max=Math.max(max,+m[1]);});return 'ZX-2026-'+String(max+1).padStart(3,'0');}
+function priColor(p){if(p&&p.includes('特急'))return 'b-red';if(p&&p.includes('紧急'))return 'b-yellow';if(p&&p.includes('常规'))return 'b-blue';return '';}
+
+/* ---------- 筛选 ---------- */
+function getFilters(){return{fw:document.getElementById('fSearch').value.trim().toLowerCase(),fc:document.getElementById('fCountry').value,fo:document.getElementById('fOwner').value,fs:document.getElementById('fStatus').value,fp:document.getElementById('fPriority').value};}
+function applyFilter(list){const f=getFilters();return list.filter(r=>{if(f.fw&&!(r.title+r.owner).toLowerCase().includes(f.fw))return false;if(f.fc&&r.country!==f.fc)return false;if(f.fo&&r.owner!==f.fo)return false;if(f.fs&&r.status!==f.fs)return false;if(f.fp&&r.priority!==f.fp)return false;return true;});}
+
+/* ---------- 渲染 ---------- */
+function fillFilters(){
+  const c=document.getElementById('fCountry'),o=document.getElementById('fOwner'),s=document.getElementById('fStatus'),p=document.getElementById('fPriority');
+  COUNTRY_OPT.forEach(x=>c.add(new Option(x,x)));
+  STATUS_OPT.forEach(x=>s.add(new Option(x,x)));
+  PRI_OPT.forEach(x=>p.add(new Option(x,x)));
+  [...new Set(records.map(r=>r.owner).filter(Boolean))].sort().forEach(x=>o.add(new Option(x,x)));
+}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function switchView(v){curView=v;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));render();}
+function clearFilters(){['fSearch','fCountry','fOwner','fStatus','fPriority'].forEach(id=>document.getElementById(id).value='');render();}
+
+function render(){
+  const view=document.getElementById('view');const list=applyFilter(records);
+  if(curView==='table')return renderTable(view,list);
+  if(curView==='boardStatus')return renderBoard(view,list,'status',STATUS_OPT,'状态');
+  if(curView==='boardOwner'){const owners=[...new Set(records.map(r=>r.owner).filter(Boolean))];return renderBoard(view,list,'owner',owners,'负责人');}
+  if(curView==='week')return renderWeek(view);
+}
+function renderTable(view,list){
+  if(!list.length){view.innerHTML='<div class="empty">暂无专项。点右上角「＋ 新建专项」开始。</div>';return;}
+  let h='<table><thead><tr><th>编号</th><th>事项</th><th>类型</th><th>负责人</th><th>国家</th><th>优先级</th><th>状态</th><th>目标日</th><th>跟进</th><th>最新进展</th></tr></thead><tbody>';
+  list.slice().sort((a,b)=>(b.due||'').localeCompare(a.due||'')).forEach(r=>{const fs=followStatus(r);
+    h+=`<tr class="${fs.c}" onclick="openForm('${r.id}')" style="cursor:pointer">
+      <td>${esc(r.id)}</td><td>${esc(r.title)}</td><td>${esc(r.type)}</td><td>${esc(r.owner)}</td>
+      <td>${esc(r.country)}</td><td><span class="badge ${priColor(r.priority)}">${esc(r.priority)}</span></td>
+      <td>${esc(r.status)}</td><td>${esc(r.due)}</td><td><span class="badge ${fs.c==='row-overdue'?'b-red':fs.c==='row-due'?'b-yellow':'b-green'}">${fs.t}</span></td>
+      <td>${esc(r.progress)}</td></tr>`;});
+  h+='</tbody></table>';view.innerHTML=h;
+}
+function renderBoard(view,list,key,cols,label){
+  if(!list.length){view.innerHTML='<div class="empty">暂无数据。</div>';return;}
+  let h='<div class="boards">';
+  cols.forEach(col=>{const items=list.filter(r=>r[key]===col);
+    h+=`<div class="board-col"><h3>${esc(col)}<span class="count">${items.length}</span></h3>`;
+    items.slice().sort((a,b)=>(b.due||'').localeCompare(a.due||'')).forEach(r=>{const fs=followStatus(r);
+      h+=`<div class="card" onclick="openForm('${r.id}')"><div class="t">${esc(r.title)}</div>
+        <div class="m"><span class="pri ${priColor(r.priority)}">${esc(r.priority)}</span><span>${esc(r.due||'')}</span></div>
+        <div class="m"><span>${fs.t}</span><span>${esc(r.owner||'')}</span></div></div>`;});
+    h+='</div>';});
+  h+='</div>';view.innerHTML=h;
+}
+function renderWeek(view){
+  const t=today();const end=new Date(t);end.setDate(t.getDate()+7);
+  const items=records.filter(r=>r.status!=='已闭环'&&r.due&&new Date(r.due)>=t&&new Date(r.due)<=end);
+  const overdue=records.filter(r=>r.status!=='已闭环'&&r.due&&new Date(r.due)<t);
+  const decide=records.filter(r=>r.status==='待决策');
+  const urgent=records.filter(r=>r.status!=='已闭环'&&r.priority&&r.priority.includes('特急'));
+  let h='<div class="summary">';
+  h+=`<div class="stat"><div class="n" style="color:var(--red)">${overdue.length}</div><div class="l">🔴已逾期</div></div>`;
+  h+=`<div class="stat"><div class="n" style="color:var(--yellow)">${items.length}</div><div class="l">🟡本周到期</div></div>`;
+  h+=`<div class="stat"><div class="n">${decide.length}</div><div class="l">⏳待决策</div></div>`;
+  h+=`<div class="stat"><div class="n" style="color:var(--red)">${urgent.length}</div><div class="l">🔴特急未闭环</div></div></div>`;
+  const all=[...overdue,...items].sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+  if(!all.length)h+='<div class="empty">本周无临期/逾期专项，状态良好。</div>';
+  else{let tb='<table><thead><tr><th>跟进</th><th>编号</th><th>事项</th><th>负责人</th><th>国家</th><th>优先级</th><th>目标日</th><th>卡点/风险</th></tr></thead><tbody>';
+    all.forEach(r=>{const fs=followStatus(r);tb+=`<tr class="${fs.c}"><td><span class="badge ${fs.c==='row-overdue'?'b-red':'b-yellow'}">${fs.t}</span></td><td>${esc(r.id)}</td><td>${esc(r.title)}</td><td>${esc(r.owner)}</td><td>${esc(r.country)}</td><td><span class="badge ${priColor(r.priority)}">${esc(r.priority)}</span></td><td>${esc(r.due)}</td><td>${esc(r.risk)}</td></tr>`;});
+    tb+='</tbody></table>';h+=tb;}
+  h+='<p style="color:var(--muted);margin-top:14px">每周一打开此页，红/黄项逐条更新进展、标卡点；待决策项当场拍板填「决策结论」。</p>';
+  view.innerHTML=h;
+}
+
+/* ---------- 表单 ---------- */
+function openForm(id){editId=id||null;document.getElementById('formTitle').textContent=id?'编辑专项':'新建专项';
+  const r=id?records.find(x=>x.id===id):{};let h='';
+  FIELDS.forEach(f=>{let val=r[f.k]||'';
+    if(f.type==='select'){h+=`<div class="fld"><label>${f.label}</label><select id="f_${f.k}">${f.options.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('')}</select></div>`;}
+    else if(f.type==='textarea'){h+=`<div class="fld"><label>${f.label}</label><textarea id="f_${f.k}">${esc(val)}</textarea></div>`;}
+    else{h+=`<div class="fld"><label>${f.label}${f.required?' <span class="req">*</span>':''}</label><input id="f_${f.k}" value="${esc(val)}"></div>`;}});
+  if(id)h+='<div class="fld"><label>专项编号</label><input value="'+esc(r.id)+'" disabled></div>';
+  if(id)h+='<div class="modal-actions" style="justify-content:space-between"><button class="ghost" style="color:var(--red);border-color:#fecaca" onclick="delRecord(\''+id+'\')">删除本条</button><span></span></div>';
+  document.getElementById('formBody').innerHTML=h;document.getElementById('formMask').classList.add('show');}
+function closeForm(){document.getElementById('formMask').classList.remove('show');}
+async function submitForm(){
+  const get=k=>document.getElementById('f_'+k).value.trim();
+  const title=get('title');if(!title){alert('事项名称必填');return;}
+  const obj={};FIELDS.forEach(f=>obj[f.k]=get(f.k));
+  if(editId){const r=records.find(x=>x.id===editId);Object.assign(r,obj);if(obj.status==='已闭环'&&!r.done)r.done=new Date().toISOString().slice(0,10);}
+  else{obj.id=nextId();obj.raised=obj.raised||new Date().toISOString().slice(0,10);records.push(obj);}
+  closeForm();await persist();fillFilters();render();
+}
+async function delRecord(id){if(!confirm('确认删除该专项？'))return;records=records.filter(x=>x.id!==id);closeForm();await persist();fillFilters();render();}
+
+/* ---------- 设置 ---------- */
+function openSettings(){loadSettings();document.getElementById('setToken').value=settings.token||'';document.getElementById('setRepo').value=settings.repo||'';document.getElementById('setPath').value=settings.path||'data.json';document.getElementById('setBranch').value=settings.branch||'main';document.getElementById('setMask').classList.add('show');}
+function closeSet(){document.getElementById('setMask').classList.remove('show');}
+function saveSettings(){settings={token:document.getElementById('setToken').value.trim(),repo:document.getElementById('setRepo').value.trim(),path:document.getElementById('setPath').value.trim()||'data.json',branch:document.getElementById('setBranch').value.trim()||'main'};saveSettingsLS();closeSet();refreshData();}
+async function testConn(){saveSettings();try{await ghLoad();alert('连接成功，已读取 '+records.length+' 条');setStatus('已连接 GitHub','ok');}catch(e){alert('连接失败：'+e.message);setStatus('GitHub错误','off');}}
+
+/* ---------- 帮助 / 刷新 / 导出 ---------- */
+function openHelp(){document.getElementById('helpMask').classList.add('show');}
+function closeHelp(){document.getElementById('helpMask').classList.remove('show');}
+async function refreshData(){await loadData();fillFilters();render();}
+function exportWeek(){
+  const t=today();const end=new Date(t);end.setDate(t.getDate()+7);
+  const all=records.filter(r=>r.status!=='已闭环'&&r.due).filter(r=>{const d=new Date(r.due);return d<end;}).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+  let txt='专项工作·本周跟进清单（'+t.toISOString().slice(0,10)+'）\n'+'='.repeat(40)+'\n';
+  if(!all.length)txt+='本周无临期/逾期专项。\n';
+  all.forEach(r=>{const fs=followStatus(r).t;txt+=`\n[${fs}] ${r.id} ${r.title}\n  负责人:${r.owner||'-'}  国家:${r.country||'-'}  优先级:${r.priority||'-'}  目标:${r.due}\n  进展:${r.progress||'-'}\n  卡点:${r.risk||'-'}\n`;});
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='专项本周清单.txt';a.click();
+}
+
+/* ---------- 启动 ---------- */
+(async function(){loadSettings();await loadData();fillFilters();render();})();
+</script>
+</body>
+</html>
