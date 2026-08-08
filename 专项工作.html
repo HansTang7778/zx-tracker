@@ -313,7 +313,7 @@ async function submitForm(){
 async function delRecord(id){if(!confirm('确认删除该专项？'))return;records=records.filter(x=>x.id!==id);closeForm();await persist();fillFilters();render();}
 
 /* ---------- 设置 ---------- */
-function openSettings(){loadSettings();document.getElementById('setToken').value=settings.token||'';document.getElementById('setRepo').value=settings.repo||'';document.getElementById('setPath').value=settings.path||'data.json';document.getElementById('setBranch').value=settings.branch||'main';document.getElementById('setMask').classList.add('show');}
+function openSettings(){loadSettings();document.getElementById('setToken').value=settings.token||'';document.getElementById('setRepo').value=settings.repo||'HansTang7778/zx-tracker';document.getElementById('setPath').value=settings.path||'data.json';document.getElementById('setBranch').value=settings.branch||'main';document.getElementById('setMask').classList.add('show');}
 function closeSet(){document.getElementById('setMask').classList.remove('show');}
 function saveSettings(){settings={token:document.getElementById('setToken').value.trim(),repo:document.getElementById('setRepo').value.trim(),path:document.getElementById('setPath').value.trim()||'data.json',branch:document.getElementById('setBranch').value.trim()||'main'};saveSettingsLS();closeSet();refreshData();}
 async function testConn(){saveSettings();try{await ghLoad();alert('连接成功，已读取 '+records.length+' 条');setStatus('已连接 GitHub','ok');}catch(e){alert('连接失败：'+e.message);setStatus('GitHub错误','off');}}
