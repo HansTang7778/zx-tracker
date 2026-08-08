@@ -166,7 +166,7 @@ const FIELDS=[
  {k:'raised',label:'提出时间',type:'date'},
  {k:'owner',label:'负责人',type:'text'},
  {k:'supporter',label:'协办人',type:'text'},
- {k:'country',label:'国家/区域',type:'select',options:['阿联酋','沙特阿拉伯','南非','埃及','尼日利亚','肯尼亚','摩洛哥','阿尔及利亚','土耳其','伊拉克','其他']},
+ {k:'country',label:'国家/区域',type:'text'},
  {k:'priority',label:'优先级',type:'select',options:['🔴特急','🟡紧急','🔵常规']},
  {k:'status',label:'状态',type:'select',options:['待启动','进行中','待决策','已闭环']},
  {k:'due',label:'目标完成日',type:'date'},
@@ -178,7 +178,7 @@ const FIELDS=[
 ];
 const STATUS_OPT=['待启动','进行中','待决策','已闭环'];
 const PRI_OPT=['🔴特急','🟡紧急','🔵常规'];
-const COUNTRY_OPT=['阿联酋','沙特阿拉伯','南非','埃及','尼日利亚','肯尼亚','摩洛哥','阿尔及利亚','土耳其','伊拉克','其他'];
+const COUNTRY_OPT=['阿联酋','沙特阿拉伯','沙特','南非','埃及','尼日利亚','肯尼亚','摩洛哥','阿尔及利亚','土耳其','伊拉克','阿曼','几内亚','坦桑尼亚','马里','中东','非洲','其他'];
 
 let records=[]; let settings={}; let sha=null; let curView='table'; let editId=null;
 
@@ -232,6 +232,7 @@ function applyFilter(list){const f=getFilters();return list.filter(r=>{if(f.fw&&
 /* ---------- 渲染 ---------- */
 function fillFilters(){
   const c=document.getElementById('fCountry'),o=document.getElementById('fOwner'),s=document.getElementById('fStatus'),p=document.getElementById('fPriority');
+  [c,o,s,p].forEach(sel=>{while(sel.options.length>1)sel.remove(1);});
   COUNTRY_OPT.forEach(x=>c.add(new Option(x,x)));
   STATUS_OPT.forEach(x=>s.add(new Option(x,x)));
   PRI_OPT.forEach(x=>p.add(new Option(x,x)));
