@@ -46,6 +46,20 @@
   th:nth-child(7),td:nth-child(7){min-width:48px;white-space:nowrap;}
   th:nth-child(8),td:nth-child(8){min-width:68px;white-space:nowrap;}
   th:nth-child(9),td:nth-child(9){min-width:42px;white-space:nowrap;}
+  /* 主表固定列宽：事项缩窄至约一半，释放宽度给最新进展 */
+  table.zt-main{table-layout:fixed;}
+  table.zt-main th:nth-child(1){width:6%;}
+  table.zt-main th:nth-child(2){width:16%;}
+  table.zt-main th:nth-child(3){width:6%;}
+  table.zt-main th:nth-child(4){width:7%;}
+  table.zt-main th:nth-child(5){width:5%;}
+  table.zt-main th:nth-child(6){width:6%;}
+  table.zt-main th:nth-child(7){width:6%;}
+  table.zt-main th:nth-child(8){width:7%;}
+  table.zt-main th:nth-child(9){width:5%;}
+  table.zt-main th:nth-child(10){width:36%;}
+  table.zt-main td:nth-child(2){word-break:break-word;}
+  table.zt-main td:nth-child(10){white-space:normal;overflow:visible;text-overflow:clip;max-width:none;word-break:break-word;}
   td .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;white-space:nowrap;}
   .row-overdue{background:#fef2f2 !important;}
   .row-due{background:#fffbeb !important;}
@@ -261,7 +275,7 @@ function render(){
 }
 function renderTable(view,list){
   if(!list.length){view.innerHTML='<div class="empty">暂无专项。点右上角「＋ 新建专项」开始。</div>';return;}
-  let h='<table><thead><tr><th>编号</th><th>事项</th><th>类型</th><th>负责人</th><th>国家</th><th>优先级</th><th>状态</th><th>目标日</th><th>跟进</th><th>最新进展</th></tr></thead><tbody>';
+  let h='<table class="zt-main"><thead><tr><th>编号</th><th>事项</th><th>类型</th><th>负责人</th><th>国家</th><th>优先级</th><th>状态</th><th>目标日</th><th>跟进</th><th>最新进展</th></tr></thead><tbody>';
   list.slice().sort((a,b)=>(b.due||'').localeCompare(a.due||'')).forEach(r=>{const fs=followStatus(r);
     h+=`<tr class="${fs.c}" onclick="openForm('${r.id}')" style="cursor:pointer">
       <td>${esc(r.id)}</td><td>${esc(r.title)}</td><td>${esc(r.type)}</td><td>${esc(r.owner)}</td>
