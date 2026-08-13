@@ -264,7 +264,8 @@ function getFilters(){
     fw:document.getElementById('fSearch').value.trim().toLowerCase(),
     fc:get('fCountry'),fo:get('fOwner'),fs:get('fStatus'),fp:get('fPriority'),
     ft:get('flt_title').toLowerCase(),fty:get('flt_type'),fr:get('flt_raised'),fd:get('flt_due'),
-    flc:get('flt_country'),flp:get('flt_priority'),fls:get('flt_status')
+    flc:get('flt_country'),flp:get('flt_priority'),fls:get('flt_status'),
+    ffs:get('flt_follow')
   };
 }
 function matchStr(val,term){if(!term)return true;const v=(val==null?'':String(val)).toLowerCase();return term.split(/\s+/).every(t=>v.includes(t));}
@@ -283,6 +284,7 @@ function applyFilter(list){
     if(f.fls&&r.status!==f.fls)return false;
     if(f.fr&&!(r.raised||'').includes(f.fr))return false;
     if(f.fd&&!(r.due||'').includes(f.fd))return false;
+    if(f.ffs&&followStatus(r).t!==f.ffs)return false;
     return true;
   });
 }
@@ -298,7 +300,7 @@ function fillFilters(){
 }
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 function switchView(v){curView=v;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));render();}
-function clearFilters(){['fSearch','fCountry','fOwner','fStatus','fPriority','flt_title','flt_type','flt_raised','flt_due','flt_country','flt_priority','flt_status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});render();}
+function clearFilters(){['fSearch','fCountry','fOwner','fStatus','fPriority','flt_title','flt_type','flt_raised','flt_due','flt_country','flt_priority','flt_status','flt_follow'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});render();}
 
 function render(){
   const view=document.getElementById('view');const list=applyFilter(records);
@@ -323,7 +325,8 @@ function renderTable(view,list){
   h+='<th><select id="flt_status" onchange="render()"><option value="">全部</option>'+STATUS_OPT.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+'</select></th>';
   h+='<th><input id="flt_raised" placeholder="起始日期" oninput="render()" autocomplete="off" style="min-width:70px"></th>';
   h+='<th><input id="flt_due" placeholder="目标日" oninput="render()" autocomplete="off" style="min-width:70px"></th>';
-  h+='<th></th><th></th>';
+  h+='<th><select id="flt_follow" onchange="render()"><option value="">全部</option>'+['✅已闭环','⚪未定节点','🔴已逾期','🟡临期','🟢正常'].map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+'</select></th>';
+  h+='<th></th>';
   h+='</tr></thead><tbody>';
   list.slice().sort((a,b)=>(b.due||'').localeCompare(a.due||'')).forEach(r=>{const fs=followStatus(r);
     h+=`<tr class="${fs.c}" onclick="openForm('${r.id}')" style="cursor:pointer">
