@@ -200,7 +200,7 @@ const FIELDS=[
  {k:'supporter',label:'协办人',type:'text'},
  {k:'country',label:'国家/区域',type:'text'},
  {k:'priority',label:'优先级',type:'select',options:['🔴特急','🟡紧急','🔵常规']},
- {k:'status',label:'状态',type:'select',options:['待启动','进行中','待决策','已闭环']},
+ {k:'status',label:'状态',type:'select',options:['待启动','进行中','待决策','已闭环','临时关闭']},
  {k:'due',label:'目标完成日',type:'date'},
  {k:'done',label:'实际完成日',type:'date'},
  {k:'progress',label:'最新进展',type:'textarea'},
@@ -208,7 +208,7 @@ const FIELDS=[
  {k:'decision',label:'决策结论',type:'textarea'},
  {k:'file',label:'关联文件',type:'text'},
 ];
-const STATUS_OPT=['待启动','进行中','待决策','已闭环'];
+const STATUS_OPT=['待启动','进行中','待决策','已闭环','临时关闭'];
 const PRI_OPT=['🔴特急','🟡紧急','🔵常规'];
 const COUNTRY_OPT=['阿联酋','沙特阿拉伯','沙特','南非','埃及','尼日利亚','肯尼亚','摩洛哥','阿尔及利亚','土耳其','伊拉克','阿曼','几内亚','坦桑尼亚','马里','中东','非洲','其他'];
 
@@ -248,6 +248,7 @@ async function persist(){
 function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
 function followStatus(r){
   if(r.status==='已闭环')return {t:'✅已闭环',c:''};
+  if(r.status==='临时关闭')return {t:'⏸️临时关闭',c:''};
   if(!r.due)return {t:'⚪未定节点',c:''};
   const due=new Date(r.due);due.setHours(0,0,0,0);const t=today();
   if(due<t)return {t:'🔴已逾期',c:'row-overdue'};
@@ -350,10 +351,10 @@ function renderBoard(view,list,key,cols,label){
 }
 function renderWeek(view){
   const t=today();const end=new Date(t);end.setDate(t.getDate()+7);
-  const items=records.filter(r=>r.status!=='已闭环'&&r.due&&new Date(r.due)>=t&&new Date(r.due)<=end);
-  const overdue=records.filter(r=>r.status!=='已闭环'&&r.due&&new Date(r.due)<t);
+  const items=records.filter(r=>r.status!=='已闭环'&&r.status!=='临时关闭'&&r.due&&new Date(r.due)>=t&&new Date(r.due)<=end);
+  const overdue=records.filter(r=>r.status!=='已闭环'&&r.status!=='临时关闭'&&r.due&&new Date(r.due)<t);
   const decide=records.filter(r=>r.status==='待决策');
-  const urgent=records.filter(r=>r.status!=='已闭环'&&r.priority&&r.priority.includes('特急'));
+  const urgent=records.filter(r=>r.status!=='已闭环'&&r.status!=='临时关闭'&&r.priority&&r.priority.includes('特急'));
   let h='<div class="summary">';
   h+=`<div class="stat"><div class="n" style="color:var(--red)">${overdue.length}</div><div class="l">🔴已逾期</div></div>`;
   h+=`<div class="stat"><div class="n" style="color:var(--yellow)">${items.length}</div><div class="l">🟡本周到期</div></div>`;
@@ -407,7 +408,7 @@ function closeHelp(){document.getElementById('helpMask').classList.remove('show'
 async function refreshData(){await loadData();fillFilters();render();}
 function exportWeek(){
   const t=today();const end=new Date(t);end.setDate(t.getDate()+7);
-  const all=records.filter(r=>r.status!=='已闭环'&&r.due).filter(r=>{const d=new Date(r.due);return d<end;}).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+  const all=records.filter(r=>r.status!=='已闭环'&&r.status!=='临时关闭'&&r.due).filter(r=>{const d=new Date(r.due);return d<end;}).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
   let txt='专项工作·本周跟进清单（'+t.toISOString().slice(0,10)+'）\n'+'='.repeat(40)+'\n';
   if(!all.length)txt+='本周无临期/逾期专项。\n';
   all.forEach(r=>{const fs=followStatus(r).t;txt+=`\n[${fs}] ${r.id} ${r.title}\n  负责人:${r.owner||'-'}  国家:${r.country||'-'}  优先级:${r.priority||'-'}  目标:${r.due}\n  进展:${r.progress||'-'}\n  卡点:${r.risk||'-'}\n`;});
