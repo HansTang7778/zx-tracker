@@ -44,22 +44,30 @@
   th:nth-child(5),td:nth-child(5){min-width:52px;white-space:nowrap;}
   th:nth-child(6),td:nth-child(6){min-width:54px;white-space:nowrap;}
   th:nth-child(7),td:nth-child(7){min-width:48px;white-space:nowrap;}
-  th:nth-child(8),td:nth-child(8){min-width:68px;white-space:nowrap;}
-  th:nth-child(9),td:nth-child(9){min-width:42px;white-space:nowrap;}
-  /* 主表固定列宽：事项缩窄至约一半，释放宽度给最新进展 */
+  th:nth-child(8),td:nth-child(8){min-width:62px;white-space:nowrap;}
+  th:nth-child(9),td:nth-child(9){min-width:62px;white-space:nowrap;}
+  th:nth-child(10),td:nth-child(10){min-width:42px;white-space:nowrap;}
+  /* 主表固定列宽：事项缩窄至约一半，释放宽度给最新进展；新增起始日期列 */
   table.zt-main{table-layout:fixed;}
   table.zt-main th:nth-child(1){width:6%;}
-  table.zt-main th:nth-child(2){width:16%;}
+  table.zt-main th:nth-child(2){width:14%;}
   table.zt-main th:nth-child(3){width:6%;}
   table.zt-main th:nth-child(4){width:7%;}
   table.zt-main th:nth-child(5){width:5%;}
   table.zt-main th:nth-child(6){width:6%;}
   table.zt-main th:nth-child(7){width:6%;}
   table.zt-main th:nth-child(8){width:7%;}
-  table.zt-main th:nth-child(9){width:5%;}
-  table.zt-main th:nth-child(10){width:36%;}
+  table.zt-main th:nth-child(9){width:7%;}
+  table.zt-main th:nth-child(10){width:5%;}
+  table.zt-main th:nth-child(11){width:31%;}
   table.zt-main td:nth-child(2){word-break:break-word;}
-  table.zt-main td:nth-child(10){white-space:normal;overflow:visible;text-overflow:clip;max-width:none;word-break:break-word;}
+  table.zt-main td:nth-child(11){white-space:normal;overflow:visible;text-overflow:clip;max-width:none;word-break:break-word;}
+  /* 表头筛选行 */
+  thead tr.filter-row th{background:#fff;padding:4px 6px;border-bottom:1px solid var(--line);}
+  thead tr.filter-row input,thead tr.filter-row select{width:100%;padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-size:12px;}
+  thead tr.filter-row select option{font-size:12px;}
+  /* 非主表thead不要有筛选行样式干扰 */
+  table:not(.zt-main) thead tr.filter-row{display:none;}
   td .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;white-space:nowrap;}
   .row-overdue{background:#fef2f2 !important;}
   .row-due{background:#fffbeb !important;}
@@ -187,7 +195,7 @@
 const FIELDS=[
  {k:'title',label:'事项名称',type:'text',required:true},
  {k:'type',label:'类型',type:'select',options:['协调资源','提供支持','督促执行','落地拍板']},
- {k:'raised',label:'提出时间',type:'date'},
+ {k:'raised',label:'起始日期',type:'date'},
  {k:'owner',label:'负责人',type:'text'},
  {k:'supporter',label:'协办人',type:'text'},
  {k:'country',label:'国家/区域',type:'text'},
@@ -250,8 +258,34 @@ function nextId(){let max=0;records.forEach(r=>{const m=/ZX-\d{4}-(\d+)/.exec(r.
 function priColor(p){if(p&&p.includes('特急'))return 'b-red';if(p&&p.includes('紧急'))return 'b-yellow';if(p&&p.includes('常规'))return 'b-blue';return '';}
 
 /* ---------- 筛选 ---------- */
-function getFilters(){return{fw:document.getElementById('fSearch').value.trim().toLowerCase(),fc:document.getElementById('fCountry').value,fo:document.getElementById('fOwner').value,fs:document.getElementById('fStatus').value,fp:document.getElementById('fPriority').value};}
-function applyFilter(list){const f=getFilters();return list.filter(r=>{if(f.fw&&!(r.title+r.owner).toLowerCase().includes(f.fw))return false;if(f.fc&&r.country!==f.fc)return false;if(f.fo&&r.owner!==f.fo)return false;if(f.fs&&r.status!==f.fs)return false;if(f.fp&&r.priority!==f.fp)return false;return true;});}
+function getFilters(){
+  const get=(id,def='')=>{const el=document.getElementById(id);return el?el.value.trim():def;};
+  return{
+    fw:document.getElementById('fSearch').value.trim().toLowerCase(),
+    fc:get('fCountry'),fo:get('fOwner'),fs:get('fStatus'),fp:get('fPriority'),
+    ft:get('flt_title').toLowerCase(),fty:get('flt_type'),fr:get('flt_raised'),fd:get('flt_due'),
+    flc:get('flt_country'),flp:get('flt_priority'),fls:get('flt_status')
+  };
+}
+function matchStr(val,term){if(!term)return true;const v=(val==null?'':String(val)).toLowerCase();return term.split(/\s+/).every(t=>v.includes(t));}
+function applyFilter(list){
+  const f=getFilters();
+  return list.filter(r=>{
+    if(f.fw&&!(r.title+r.owner).toLowerCase().includes(f.fw))return false;
+    if(f.fc&&r.country!==f.fc)return false;
+    if(f.fo&&r.owner!==f.fo)return false;
+    if(f.fs&&r.status!==f.fs)return false;
+    if(f.fp&&r.priority!==f.fp)return false;
+    if(!matchStr(r.title,f.ft))return false;
+    if(f.fty&&r.type!==f.fty)return false;
+    if(f.flc&&r.country!==f.flc)return false;
+    if(f.flp&&r.priority!==f.flp)return false;
+    if(f.fls&&r.status!==f.fls)return false;
+    if(f.fr&&!(r.raised||'').includes(f.fr))return false;
+    if(f.fd&&!(r.due||'').includes(f.fd))return false;
+    return true;
+  });
+}
 
 /* ---------- 渲染 ---------- */
 function fillFilters(){
@@ -264,7 +298,7 @@ function fillFilters(){
 }
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 function switchView(v){curView=v;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));render();}
-function clearFilters(){['fSearch','fCountry','fOwner','fStatus','fPriority'].forEach(id=>document.getElementById(id).value='');render();}
+function clearFilters(){['fSearch','fCountry','fOwner','fStatus','fPriority','flt_title','flt_type','flt_raised','flt_due','flt_country','flt_priority','flt_status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});render();}
 
 function render(){
   const view=document.getElementById('view');const list=applyFilter(records);
@@ -275,12 +309,27 @@ function render(){
 }
 function renderTable(view,list){
   if(!list.length){view.innerHTML='<div class="empty">暂无专项。点右上角「＋ 新建专项」开始。</div>';return;}
-  let h='<table class="zt-main"><thead><tr><th>编号</th><th>事项</th><th>类型</th><th>负责人</th><th>国家</th><th>优先级</th><th>状态</th><th>目标日</th><th>跟进</th><th>最新进展</th></tr></thead><tbody>';
+  const typeOpt=[...new Set(records.map(r=>r.type).filter(Boolean))].sort();
+  const countryOpt=[...new Set(records.map(r=>r.country).filter(Boolean))].sort();
+  let h='<table class="zt-main"><thead>';
+  h+='<tr><th>编号</th><th>事项</th><th>类型</th><th>负责人</th><th>国家</th><th>优先级</th><th>状态</th><th>起始日期</th><th>目标日</th><th>跟进</th><th>最新进展</th></tr>';
+  h+='<tr class="filter-row">';
+  h+='<th></th>';
+  h+='<th><input id="flt_title" placeholder="筛选事项" oninput="render()" autocomplete="off"></th>';
+  h+='<th><select id="flt_type" onchange="render()"><option value="">全部</option>'+typeOpt.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+'</select></th>';
+  h+='<th></th>';
+  h+='<th><select id="flt_country" onchange="render()"><option value="">全部</option>'+countryOpt.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+'</select></th>';
+  h+='<th><select id="flt_priority" onchange="render()"><option value="">全部</option>'+PRI_OPT.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+'</select></th>';
+  h+='<th><select id="flt_status" onchange="render()"><option value="">全部</option>'+STATUS_OPT.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+'</select></th>';
+  h+='<th><input id="flt_raised" placeholder="起始日期" oninput="render()" autocomplete="off" style="min-width:70px"></th>';
+  h+='<th><input id="flt_due" placeholder="目标日" oninput="render()" autocomplete="off" style="min-width:70px"></th>';
+  h+='<th></th><th></th>';
+  h+='</tr></thead><tbody>';
   list.slice().sort((a,b)=>(b.due||'').localeCompare(a.due||'')).forEach(r=>{const fs=followStatus(r);
     h+=`<tr class="${fs.c}" onclick="openForm('${r.id}')" style="cursor:pointer">
       <td>${esc(r.id)}</td><td>${esc(r.title)}</td><td>${esc(r.type)}</td><td>${esc(r.owner)}</td>
       <td>${esc(r.country)}</td><td><span class="badge ${priColor(r.priority)}">${esc(r.priority)}</span></td>
-      <td>${esc(r.status)}</td><td>${esc(r.due)}</td><td><span class="badge ${fs.c==='row-overdue'?'b-red':fs.c==='row-due'?'b-yellow':'b-green'}">${fs.t}</span></td>
+      <td>${esc(r.status)}</td><td>${esc(r.raised)}</td><td>${esc(r.due)}</td><td><span class="badge ${fs.c==='row-overdue'?'b-red':fs.c==='row-due'?'b-yellow':'b-green'}">${fs.t}</span></td>
       <td>${esc(r.progress)}</td></tr>`;});
   h+='</tbody></table>';view.innerHTML='<div class="table-scroll">'+h+'</div>';
 }
